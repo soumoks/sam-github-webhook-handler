@@ -6,9 +6,10 @@ This is a production ready github webhook handler built and deployed using [AWS 
 
 API-GW -> Lambda combination gives us an API capable of handling any POST requests sent by the Github Webhook.
 This Lambda function in-turn publishes to an SNS Topic and the idea is to subscribe any action listener on this topic.
-I am subscribing a sample Lambda data-processor for reference.
+I am subscribing a sample Lambda event-processor for reference.
 
 Why is SNS used in this architecture?
+
 [SNS](https://aws.amazon.com/sns/) is used to decouple the github-handler Lambda function from the event-processor. 
 This lets the github-handler Lambda function respond to the webhook without waiting on the event-processor's response.
 
