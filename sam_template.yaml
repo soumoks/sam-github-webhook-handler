@@ -4,7 +4,7 @@ Description: github handler
 Outputs:
   GithubHandlerApiURL:
     Description: "API Prod stage endpoint"
-    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/prod/"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/prod/webhook"
 Resources:
   ApiGatewayApi:
     Type: AWS::Serverless::Api

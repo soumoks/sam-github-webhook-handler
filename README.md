@@ -39,6 +39,12 @@ sam package --template-file sam_template.yaml --output-template-file packaged.ya
 sam deploy --template-file packaged.yaml --stack-name github-handler-api --capabilities CAPABILITY_NAMED_IAM --region us-east-1
 ```
 
+The above command returns an API endpoint that can be configured as a github webhook.
+Configure accordingly.
+
+![alt text](https://github-cf.sourabh.org/images/webhook_1_edit.png)
+
+
 
 
 
