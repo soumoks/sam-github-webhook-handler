@@ -10,7 +10,7 @@ I am subscribing a sample Lambda data-processor for reference.
 Pre-requisites:
 * AWS Account
 * SAM CLI
-* Python
+* Python 3.6+
 * Docker
 
 Steps to run and deploy:
