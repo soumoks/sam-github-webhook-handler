@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: github handler
+Outputs:
+  GithubHandlerApiURL:
+    Description: "API Prod stage endpoint"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/prod/"
+Resources:
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+  GithubHandlerFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: github_handler.lambda_handler
+      Runtime: python3.7
+      CodeUri: .
+      Description: github handler
+      MemorySize: 128
+      Timeout: 5
+      Role: !GetAtt LambdaSNSIAMRole.Arn
+      Environment: 
+        Variables:
+          topic_arn: !Ref SNSTopic
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /webhook
+            Method: post
+            RestApiId:
+              Ref: ApiGatewayApi
+  LambdaSNSIAMRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument: {"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"},"Action":"sts:AssumeRole"}]}
+      Description: This role allows the first Lambda function to publish to a configured SNS Topic
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaFullAccess
+      RoleName: !Sub LambdaSNSIAMRole-${AWS::Region}
+  LambdaBasicIAMRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument: {"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"},"Action":"sts:AssumeRole"}]}
+      Description: This role allows provides basic Lambda permissions. Allows Cloudwatch logging.
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaFullAccess
+      RoleName: !Sub LambdaBasicRole-${AWS::Region}
+  DataProcessorFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: message_processor.lambda_handler
+      Runtime: python3.7
+      CodeUri: .
+      Description: This function is invoked on a SNS publish and is the processor function
+      MemorySize: 128
+      Timeout: 5
+      Role: !GetAtt LambdaBasicIAMRole.Arn
+      Events:
+        SNSEvent:
+          Type: SNS
+          Properties:
+            Topic: !Ref SNSTopic
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: github-push-notifications
+      Subscription:
+          #Lambda ARN
+        - Endpoint: !GetAtt DataProcessorFunction.Arn
+          #Protocol is set to Lambda for a Lambda subscription
+          Protocol: lambda
+  
